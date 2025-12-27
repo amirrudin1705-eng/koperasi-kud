@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 require_once '../config/config.php';
 require_once '../config/database.php';
 
@@ -7,9 +9,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$username = $_POST['username'];
+$username = mysqli_real_escape_string($conn, $_POST['username']);
 $password = $_POST['password'];
 
+// Ambil user
 $query = mysqli_query($conn, "SELECT * FROM users WHERE username='$username'");
 $user  = mysqli_fetch_assoc($query);
 
@@ -21,6 +24,7 @@ if (!$user) {
     exit;
 }
 
+// Verifikasi password
 if (!password_verify($password, $user['password'])) {
     echo "<script>
         alert('Password salah!');
@@ -29,21 +33,23 @@ if (!password_verify($password, $user['password'])) {
     exit;
 }
 
-session_unset();
+// Regenerasi session
 session_regenerate_id(true);
 
+// Set session
 $_SESSION['login']   = true;
 $_SESSION['id_user'] = $user['id_user'];
 $_SESSION['nama']    = $user['nama'];
 $_SESSION['role']    = $user['role'];
 
+// Redirect berdasarkan role
 switch ($user['role']) {
     case 'admin':
         header("Location: ../admin/dashboard.php");
         break;
 
     case 'staf':
-        header("Location: ../staf/dashboard.php");
+        header("Location: ../staf_keuangan/dashboard.php");
         break;
 
     case 'anggota':

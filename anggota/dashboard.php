@@ -5,6 +5,8 @@ require_once '../config/database.php';
 if (!isset($_SESSION['login']) || $_SESSION['role'] !== 'anggota') {
     header("Location: ../auth/login.php");
     exit;
+
+
 }
 
 $id_user = $_SESSION['id_user'];
@@ -28,6 +30,15 @@ $fotoProfil = !empty($user['foto'])
 ================================ */
 require_once 'helpers/simpanan_data.php';
 require_once 'helpers/dashboard_data.php';
+
+if (isset($statusKeanggotaan) && $statusKeanggotaan !== 'Aktif') {
+    echo "<script>
+        alert('Akun Anda saat ini NONAKTIF. Silakan hubungi admin koperasi.');
+        window.location.href = '../auth/logout.php';
+    </script>";
+    exit;
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -61,10 +72,11 @@ require_once 'helpers/dashboard_data.php';
 
 <!-- MAIN -->
 <main class="flex-fill bg-light">
+  
 
 <div class="d-flex justify-content-end align-items-center p-3 bg-white shadow-sm">
   <div class="text-end me-3">
-    <div class="fw-semibold"><?= htmlspecialchars($user['nama']) ?></div>
+    <div class="fw-semibold"><?= htmlspecialchars($_SESSION['nama'] ?? 'Anggota'); ?></div>
     <small class="text-muted">Anggota</small>
   </div>
   <img src="<?= $fotoProfil ?>" class="rounded-circle" width="42" height="42" style="object-fit:cover;">

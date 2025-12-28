@@ -1,50 +1,59 @@
 <?php
+/* ==================================================
+   VALIDASI DASAR
+================================================== */
 if (!isset($conn) || !isset($id_user)) {
     die('Akses tidak valid');
 }
 
 /* ==================================================
-   1. AMBIL ID ANGGOTA
+   DEFAULT AMAN (WAJIB UNTUK USER BARU)
+================================================== */
+$statusKeanggotaan = 'Tidak Aktif';
+
+$pinjamanAktif     = 0;
+$sisaAngsuran      = 0;
+$nominalAngsuran   = 0;
+$angsuranKe        = 0;
+$jatuhTempo        = '-';
+
+/* ==================================================
+   1. AMBIL DATA ANGGOTA
 ================================================== */
 $qAnggota = mysqli_query($conn, "
-    SELECT id_anggota
+    SELECT id_anggota, status_keanggotaan
     FROM anggota
     WHERE id_user = '$id_user'
+    LIMIT 1
 ");
+
 $dataAnggota = mysqli_fetch_assoc($qAnggota);
+
 $id_anggota = $dataAnggota['id_anggota'] ?? 0;
 
-/* ==================================================
-   DEFAULT VALUE (ANTI ERROR)
-================================================== */
-$pinjamanAktif      = 0;
-$sisaAngsuran       = 0;
-$statusKeanggotaan  = 'Aktif';
-
-$jatuhTempo         = null;
-$angsuranKe         = 0;
-$nominalAngsuran    = 0;
+if (
+    isset($dataAnggota['status_keanggotaan']) &&
+    strtolower($dataAnggota['status_keanggotaan']) === 'aktif'
+) {
+    $statusKeanggotaan = 'Aktif';
+}
 
 /* ==================================================
-   JIKA ANGGOTA ADA
+   2. AMBIL PINJAMAN AKTIF (STATUS DISETUJUI)
 ================================================== */
 if ($id_anggota) {
 
-    /* ==============================================
-       2. AMBIL PINJAMAN AKTIF (DISETUJUI)
-       - Fokus 1 pinjaman aktif terakhir
-    =============================================== */
     $qPinjaman = mysqli_query($conn, "
         SELECT 
-            p.id_pengajuan,
-            p.jumlah_pinjaman,
-            p.cicilan,
-            p.tenor,
-            p.tanggal_pengajuan
-        FROM pengajuan_pinjaman p
-        WHERE p.id_anggota = '$id_anggota'
-          AND p.status = 'disetujui'
-        ORDER BY p.tanggal_pengajuan DESC
+            id_pengajuan,
+            jumlah_pinjaman,
+            cicilan,
+            tenor,
+            tanggal_pengajuan
+        FROM pengajuan_pinjaman
+        WHERE id_anggota = '$id_anggota'
+          AND status = 'berjalan'
+        ORDER BY tanggal_pengajuan DESC
         LIMIT 1
     ");
 
@@ -53,17 +62,16 @@ if ($id_anggota) {
     if ($pinjaman) {
 
         $idPengajuan      = $pinjaman['id_pengajuan'];
-        $pinjamanAktif    = $pinjaman['jumlah_pinjaman'];
-        $nominalAngsuran  = $pinjaman['cicilan'];
+        $pinjamanAktif   = (float) $pinjaman['jumlah_pinjaman'];
+        $nominalAngsuran = (float) $pinjaman['cicilan'];
         $tanggalPengajuan = $pinjaman['tanggal_pengajuan'];
 
         /* ==========================================
-           3. HITUNG TOTAL ANGSURAN YANG SUDAH DIBAYAR
+           3. HITUNG ANGSURAN YANG SUDAH DIBAYAR
         =========================================== */
         $qAngsuran = mysqli_query($conn, "
             SELECT 
-                COUNT(*) AS total_bayar,
-                COALESCE(SUM(jumlah_bayar), 0) AS total_nominal,
+                COALESCE(SUM(jumlah_bayar), 0) AS total_dibayar,
                 MAX(angsuran_ke) AS terakhir_ke,
                 MAX(tanggal_bayar) AS terakhir_bayar
             FROM angsuran
@@ -72,8 +80,8 @@ if ($id_anggota) {
 
         $angsuran = mysqli_fetch_assoc($qAngsuran);
 
-        $totalDibayar   = $angsuran['total_nominal'] ?? 0;
-        $angsuranTerakhir = $angsuran['terakhir_ke'] ?? 0;
+        $totalDibayar        = (float) ($angsuran['total_dibayar'] ?? 0);
+        $angsuranTerakhir   = (int) ($angsuran['terakhir_ke'] ?? 0);
         $tanggalBayarTerakhir = $angsuran['terakhir_bayar'] ?? null;
 
         /* ==========================================
@@ -82,12 +90,7 @@ if ($id_anggota) {
         $sisaAngsuran = max($pinjamanAktif - $totalDibayar, 0);
 
         /* ==========================================
-           5. HITUNG ANGSURAN KE & JATUH TEMPO (BENAR)
-           ATURAN:
-           - JIKA SUDAH PERNAH BAYAR:
-             jatuh tempo = tanggal bayar terakhir + 1 bulan
-           - JIKA BELUM PERNAH BAYAR:
-             jatuh tempo = tanggal pengajuan + 1 bulan
+           5. HITUNG ANGSURAN KE & JATUH TEMPO
         =========================================== */
         if ($tanggalBayarTerakhir) {
             // Sudah pernah bayar
@@ -97,7 +100,7 @@ if ($id_anggota) {
                 strtotime('+1 month', strtotime($tanggalBayarTerakhir))
             );
         } else {
-            // Belum pernah bayar
+            // Belum pernah bayar sama sekali
             $angsuranKe = 1;
             $jatuhTempo = date(
                 'Y-m-d',

@@ -80,13 +80,17 @@ Resend (<span id="timer">60</span>s)
 <script>
 let timer = 60;
 let interval;
+let otpSent = false; // ⬅️ KUNCI UTAMA
 
 function startTimer() {
   timer = 60;
   document.getElementById('resendBtn').disabled = true;
+  document.getElementById('timer').innerText = timer;
+
   interval = setInterval(() => {
     timer--;
     document.getElementById('timer').innerText = timer;
+
     if (timer <= 0) {
       clearInterval(interval);
       document.getElementById('resendBtn').disabled = false;
@@ -96,14 +100,28 @@ function startTimer() {
 }
 
 document.getElementById('sendOtpBtn').onclick = () => {
+
+  // ⛔ BLOK KLIK ULANG
+  if (otpSent) return;
+
   const email = document.getElementById('email').value;
-  if (!email) return alert('Isi email dulu');
+  if (!email) {
+    alert('Isi email dulu');
+    return;
+  }
+
+  otpSent = true; // 🔒 KUNCI SEKALI KLIK
+  const btnSend = document.getElementById('sendOtpBtn');
+  btnSend.disabled = true;
+  btnSend.style.display = 'none'; // 🔥 HILANGKAN TOMBOL
 
   fetch('send_otp.php', {
     method: 'POST',
     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    body: 'email=' + email
-  }).then(r => r.text()).then(res => {
+    body: 'email=' + encodeURIComponent(email)
+  })
+  .then(r => r.text())
+  .then(res => {
     alert(res);
     document.getElementById('otpSection').classList.remove('d-none');
     startTimer();
@@ -111,8 +129,15 @@ document.getElementById('sendOtpBtn').onclick = () => {
 };
 
 document.getElementById('resendBtn').onclick = () => {
-  document.getElementById('sendOtpBtn').click();
+  document.getElementById('resendBtn').disabled = true;
   document.getElementById('resendBtn').innerHTML = 'Resend (<span id="timer">60</span>s)';
+  startTimer();
+
+  fetch('send_otp.php', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: 'email=' + encodeURIComponent(document.getElementById('email').value)
+  });
 };
 </script>
 

@@ -5,27 +5,50 @@ require '../config/database.php';
 include 'layout/header.php';
 include 'layout/sidebar.php';
 
-// filter tanggal
-$awal  = $_GET['awal'] ?? date('Y-m-01');
+/* ===============================
+ * FILTER TANGGAL (DEFAULT BULAN INI)
+ * =============================== */
+$awal  = $_GET['awal']  ?? date('Y-m-01');
 $akhir = $_GET['akhir'] ?? date('Y-m-t');
 
-// total simpanan
+/* ===============================
+ * TOTAL SIMPANAN (DANA MASUK)
+ * =============================== */
 $simpanan = mysqli_fetch_assoc(mysqli_query($conn, "
-    SELECT SUM(jumlah) total 
+    SELECT COALESCE(SUM(jumlah),0) AS total 
     FROM simpanan 
     WHERE tanggal BETWEEN '$awal' AND '$akhir'
 "));
 
-// total angsuran
+/* ===============================
+ * TOTAL ANGSURAN (DANA MASUK)
+ * =============================== */
 $angsuran = mysqli_fetch_assoc(mysqli_query($conn, "
-    SELECT SUM(jumlah_bayar) total 
+    SELECT COALESCE(SUM(jumlah_bayar),0) AS total 
     FROM angsuran 
     WHERE tanggal_bayar BETWEEN '$awal' AND '$akhir'
 "));
+
+/* ===============================
+ * TOTAL PENJUALAN BARANG (DANA MASUK)
+ * =============================== */
+$penjualan = mysqli_fetch_assoc(mysqli_query($conn, "
+    SELECT COALESCE(SUM(jumlah * harga),0) AS total 
+    FROM transaksi_barang
+    WHERE tanggal_transaksi BETWEEN '$awal' AND '$akhir'
+"));
+
+/* ===============================
+ * TOTAL DANA MASUK KESELURUHAN
+ * =============================== */
+$totalDanaMasuk =
+    ($simpanan['total'] ?? 0) +
+    ($angsuran['total'] ?? 0) +
+    ($penjualan['total'] ?? 0);
 ?>
 
 <h4 class="fw-bold mb-2">Laporan Keuangan</h4>
-<p class="text-muted mb-4">Periode <?= $awal ?> s/d <?= $akhir ?></p>
+<p class="text-muted mb-4">Periode <?= date('d M Y', strtotime($awal)) ?> s/d <?= date('d M Y', strtotime($akhir)) ?></p>
 
 <form method="get" class="row g-3 mb-4">
     <div class="col-md-4">
@@ -50,7 +73,7 @@ $angsuran = mysqli_fetch_assoc(mysqli_query($conn, "
             <div class="card-body">
                 <small class="text-muted">Total Simpanan</small>
                 <h5 class="fw-bold text-success">
-                    Rp <?= number_format($simpanan['total'] ?? 0,0,',','.') ?>
+                    Rp <?= number_format($simpanan['total'],0,',','.') ?>
                 </h5>
             </div>
         </div>
@@ -61,7 +84,7 @@ $angsuran = mysqli_fetch_assoc(mysqli_query($conn, "
             <div class="card-body">
                 <small class="text-muted">Total Angsuran</small>
                 <h5 class="fw-bold text-success">
-                    Rp <?= number_format($angsuran['total'] ?? 0,0,',','.') ?>
+                    Rp <?= number_format($angsuran['total'],0,',','.') ?>
                 </h5>
             </div>
         </div>
@@ -70,18 +93,29 @@ $angsuran = mysqli_fetch_assoc(mysqli_query($conn, "
     <div class="col-md-4">
         <div class="card shadow-sm card-stat">
             <div class="card-body">
-                <small class="text-muted">Total Dana Masuk</small>
-                <h5 class="fw-bold text-primary">
-                    Rp <?= number_format(($simpanan['total'] ?? 0)+($angsuran['total'] ?? 0),0,',','.') ?>
+                <small class="text-muted">Penjualan Barang</small>
+                <h5 class="fw-bold text-success">
+                    Rp <?= number_format($penjualan['total'],0,',','.') ?>
                 </h5>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12">
+        <div class="card shadow-sm card-stat border-primary">
+            <div class="card-body">
+                <small class="text-muted">TOTAL DANA MASUK</small>
+                <h4 class="fw-bold text-primary">
+                    Rp <?= number_format($totalDanaMasuk,0,',','.') ?>
+                </h4>
             </div>
         </div>
     </div>
 
 </div>
 
-<a href="laporan_print.php?awal=<?= $awal ?>&akhir=<?= $akhir ?>" 
-   target="_blank" 
+<a href="laporan_print.php?awal=<?= $awal ?>&akhir=<?= $akhir ?>"
+   target="_blank"
    class="btn btn-outline-primary">
    <i class="bi bi-printer"></i> Cetak Laporan
 </a>

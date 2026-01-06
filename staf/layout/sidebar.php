@@ -31,8 +31,18 @@ require '../config/database.php';
                 </a>
             </li>
             <li class="nav-item">
+                <a href="penjualan_barang.php" class="nav-link text-white">
+                    <i class="bi bi-cart-check me-2"></i>Penjualan Barang
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link text-white" href="angsuran.php">
                     <i class="bi bi-arrow-repeat me-2"></i> Angsuran
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="laporan_penjualan.php" class="nav-link text-white">
+                    <i class="bi bi-graph-up me-2"></i> Laporan Penjualan
                 </a>
             </li>
             <li class="nav-item">
@@ -52,4 +62,3 @@ require '../config/database.php';
     </aside>
 
     <main class="flex-grow-1 p-4">
-

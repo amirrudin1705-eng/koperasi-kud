@@ -37,6 +37,7 @@ body { font-family: 'Poppins', sans-serif; background:#f5f6fa; }
     <a href="dashboard.php"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
     <a href="anggota.php"><i class="bi bi-people me-2"></i>Anggota</a>
     <a href="simpanan.php"><i class="bi bi-wallet2 me-2"></i>Simpanan</a>
+    <a href="barang.php"><i class="bi bi-box-seam me-2"></i>Barang</a>
     <a href="pengajuan_pinjaman.php"><i class="bi bi-cash-coin me-2"></i>Pengajuan Pinjaman</a>
     <a href="pinjaman.php"><i class="bi bi-cash-coin me-2"></i>Pinjaman</a>
     <a href="angsuran.php" class="active"><i class="bi bi-arrow-repeat me-2"></i>Angsuran</a>

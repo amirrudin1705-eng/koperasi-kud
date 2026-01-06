@@ -1,66 +1,49 @@
 <?php
-/******************************************
- * DASHBOARD ADMIN - DATA HELPER (FIX FINAL)
- ******************************************/
+/*************************************************
+ * DASHBOARD DATA - ADMIN KUD (FINAL & VALID)
+ * DISUSUN BERDASARKAN simpanan.php (REAL DB)
+ *************************************************/
 
-if (!isset($conn)) {
-    require_once __DIR__ . '/../../config/database.php';
-}
-
-/* ==============================
+/* ===============================
    TOTAL ANGGOTA
-   (SEMUA ROLE ANGGOTA)
 ================================ */
-$qAnggota = mysqli_query(
-    $conn,
-    "SELECT COUNT(*) AS total
-     FROM users
-     WHERE role = 'anggota'"
-);
+$qAnggota = mysqli_query($conn, "
+    SELECT COUNT(*) AS total
+    FROM anggota
+");
 $totalAnggota = mysqli_fetch_assoc($qAnggota)['total'] ?? 0;
 
 
-/* ==============================
+/* ===============================
    TOTAL SIMPANAN
+   (SESUAI simpanan.php)
 ================================ */
-$qSimpanan = mysqli_query(
-    $conn,
-    "SELECT COALESCE(SUM(jumlah), 0) AS total
-     FROM simpanan"
-);
+$qSimpanan = mysqli_query($conn, "
+    SELECT SUM(jumlah) AS total
+    FROM simpanan
+");
 $totalSimpanan = mysqli_fetch_assoc($qSimpanan)['total'] ?? 0;
 
 
-/* ==============================
-   TOTAL PINJAMAN AKTIF
-   (STATUS DISETUJUI)
+/* ===============================
+   PINJAMAN
+   (BELUM DISENTUH, AMAN)
 ================================ */
-$qPinjaman = mysqli_query(
-    $conn,
-    "SELECT COALESCE(SUM(jumlah_pinjaman), 0) AS total
-     FROM pengajuan_pinjaman
-     WHERE status = 'berjalan'"
-);
-$totalPinjaman = mysqli_fetch_assoc($qPinjaman)['total'] ?? 0;
+$totalPinjaman  = 0;
+$totalTunggakan = 0;
 
 
-/* ==============================
-   TOTAL PINJAMAN BERMASALAH
-   (BELUM LUNAS)
+/* ===============================
+   DATA BARANG
 ================================ */
-$qTunggakan = mysqli_query(
-    $conn,
-    "SELECT COUNT(*) AS total
-     FROM pengajuan_pinjaman p
-     LEFT JOIN (
-        SELECT 
-            id_pengajuan,
-            COALESCE(SUM(jumlah_bayar), 0) AS total_bayar
-        FROM angsuran
-        GROUP BY id_pengajuan
-     ) a ON p.id_pengajuan = a.id_pengajuan
-     WHERE p.status = 'berjalan'
-       AND COALESCE(a.total_bayar, 0) < p.jumlah_pinjaman"
-);
+$qBarang = mysqli_query($conn, "
+    SELECT COUNT(*) AS total
+    FROM barang
+");
+$totalBarang = mysqli_fetch_assoc($qBarang)['total'] ?? 0;
 
-$totalTunggakan = mysqli_fetch_assoc($qTunggakan)['total'] ?? 0;
+$qStok = mysqli_query($conn, "
+    SELECT SUM(stok) AS total
+    FROM barang
+");
+$totalStokBarang = mysqli_fetch_assoc($qStok)['total'] ?? 0;

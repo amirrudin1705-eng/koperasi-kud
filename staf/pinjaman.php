@@ -51,15 +51,21 @@ $query = mysqli_query($conn, "
                     <td>Rp <?= number_format($row['jumlah_pinjaman'],0,',','.') ?></td>
                     <td><?= $row['tenor'] ?> bulan</td>
                     <td>Rp <?= number_format($row['cicilan'],0,',','.') ?></td>
-                    <td>
-                        <?php if ($row['status'] == 'menunggu'): ?>
-                            <span class="badge bg-warning text-dark">Menunggu</span>
-                        <?php elseif ($row['status'] == 'disetujui'): ?>
-                            <span class="badge bg-success">Disetujui</span>
-                        <?php else: ?>
-                            <span class="badge bg-danger">Ditolak</span>
-                        <?php endif; ?>
-                    </td>
+<td>
+    <?php if ($row['status'] == 'menunggu'): ?>
+        <span class="badge bg-warning text-dark">Menunggu</span>
+
+    <?php elseif ($row['status'] == 'berjalan'): ?>
+        <span class="badge bg-success">Disetujui</span>
+
+    <?php elseif ($row['status'] == 'lunas'): ?>
+        <span class="badge bg-primary">Lunas</span>
+
+    <?php else: ?>
+        <span class="badge bg-danger">Ditolak</span>
+    <?php endif; ?>
+</td>
+
                 </tr>
                 <?php endwhile; ?>
             </tbody>

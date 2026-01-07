@@ -30,9 +30,9 @@ $totalSimpanan = mysqli_fetch_assoc($qSimpanan)['total'] ?? 0;
 
 // Total Pinjaman Aktif
 $qPinjaman = mysqli_query($conn, "
-    SELECT COALESCE(SUM(jumlah_pinjaman),0) AS total
+    SELECT COALESCE(SUM(tenor * cicilan),0) AS total
     FROM pengajuan_pinjaman
-    WHERE status = 'disetujui'
+    WHERE status = 'berjalan'
 ");
 $totalPinjamanAktif = mysqli_fetch_assoc($qPinjaman)['total'] ?? 0;
 
@@ -58,19 +58,20 @@ $queryTunggakan = "
 SELECT
     u.nama,
     p.id_pengajuan,
-    p.jumlah_pinjaman,
+    (p.tenor * p.cicilan) AS total_tagihan,
     COALESCE(SUM(a.jumlah_bayar), 0) AS total_bayar,
-    (p.jumlah_pinjaman - COALESCE(SUM(a.jumlah_bayar), 0)) AS tunggakan
+    ((p.tenor * p.cicilan) - COALESCE(SUM(a.jumlah_bayar), 0)) AS tunggakan
 FROM pengajuan_pinjaman p
 JOIN anggota ag ON p.id_anggota = ag.id_anggota
 JOIN users u ON ag.id_user = u.id_user
 LEFT JOIN angsuran a ON p.id_pengajuan = a.id_pengajuan
-WHERE p.status = 'disetujui'
+WHERE p.status = 'berjalan'
 $whereTanggal
 GROUP BY p.id_pengajuan
 HAVING tunggakan > 0
 ORDER BY tunggakan DESC
 ";
+
 
 $qTunggakan = mysqli_query($conn, $queryTunggakan);
 

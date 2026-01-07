@@ -142,7 +142,7 @@ body { font-family:'Poppins',sans-serif; background:#f5f6fa; }
 <tr>
     <td><?= $no++; ?></td>
     <td><?= htmlspecialchars($row['nama']); ?></td>
-    <td>Rp <?= number_format($row['jumlah_pinjaman'],0,',','.'); ?></td>
+    <td>Rp <?= number_format($row['total_tagihan'],0,',','.'); ?></td>
     <td>Rp <?= number_format($row['total_bayar'],0,',','.'); ?></td>
     <td class="text-danger fw-bold">
         Rp <?= number_format($row['tunggakan'],0,',','.'); ?>

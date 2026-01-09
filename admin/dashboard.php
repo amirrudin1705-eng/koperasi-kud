@@ -107,9 +107,9 @@ body { font-family:'Poppins',sans-serif; background:#f5f6fa; }
 
     <div class="col-md-3">
         <div class="card card-stat p-3 shadow-sm">
-            <small class="text-muted">Tunggakan</small>
+            <small class="text-muted">Tunggakan Anggota</small>
             <div class="d-flex justify-content-between align-items-center">
-                <h4 class="fw-bold mb-0 text-danger"><?= $totalTunggakan; ?></h4>
+                <h4 class="fw-bold mb-0 text-danger"><?= $totalAnggotaMenunggak; ?></h4>
                 <i class="bi bi-exclamation-circle text-danger"></i>
             </div>
         </div>

@@ -8,15 +8,17 @@ if (!isset($_SESSION['login']) || $_SESSION['role'] !== 'admin') {
 
 require_once __DIR__ . '/../config/database.php';
 
-/* QUERY DATA BARANG (SUDAH DISINKRONKAN DENGAN DB) */
+/* QUERY DATA BARANG */
 $data = mysqli_query($conn, "
     SELECT 
         id_barang,
         nama_barang,
         stok,
         satuan,
-        harga_jual
+        harga_jual,
+        is_active
     FROM barang
+    WHERE is_active = 1
     ORDER BY nama_barang ASC
 ");
 ?>
@@ -32,36 +34,13 @@ $data = mysqli_query($conn, "
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
-body {
-    font-family: 'Poppins', sans-serif;
-    background: #f5f6fa;
-}
-.admin-wrapper {
-    display: flex;
-    min-height: 100vh;
-}
-.sidebar {
-    width: 250px;
-    background: #1f2937;
-}
-.sidebar a {
-    display: block;
-    padding: 12px 20px;
-    color: #cbd5e1;
-    text-decoration: none;
-}
-.sidebar a:hover,
-.sidebar a.active {
-    background: #374151;
-    color: #fff;
-}
-.content {
-    flex: 1;
-    padding: 24px;
-}
-.card {
-    border-radius: 12px;
-}
+body { font-family: 'Poppins', sans-serif; background: #f5f6fa; }
+.admin-wrapper { display: flex; min-height: 100vh; }
+.sidebar { width: 250px; background: #1f2937; }
+.sidebar a { display: block; padding: 12px 20px; color: #cbd5e1; text-decoration: none; }
+.sidebar a:hover, .sidebar a.active { background: #374151; color: #fff; }
+.content { flex: 1; padding: 24px; }
+.card { border-radius: 12px; }
 </style>
 </head>
 
@@ -104,7 +83,7 @@ body {
     <th>Nama Barang</th>
     <th>Stok</th>
     <th>Harga Jual</th>
-    <th width="15%">Aksi</th>
+    <th width="20%">Aksi</th>
 </tr>
 </thead>
 <tbody>
@@ -114,14 +93,19 @@ body {
 <tr>
     <td><?= $no++ ?></td>
     <td><?= htmlspecialchars($row['nama_barang']) ?></td>
-    <td><?= $row['stok'] . ' ' . $row['satuan'] ?></td>
-    <td>Rp <?= number_format($row['harga_jual'], 2, ',', '.') ?></td>
+    <td><?= $row['stok'].' '.$row['satuan'] ?></td>
+    <td>Rp <?= number_format($row['harga_jual'], 0, ',', '.') ?></td>
     <td>
         <a href="barang_stok.php?id=<?= $row['id_barang'] ?>" class="btn btn-sm btn-success">
             + Stok
         </a>
         <a href="barang_edit.php?id=<?= $row['id_barang'] ?>" class="btn btn-sm btn-warning">
             Edit
+        </a>
+        <a href="barang_hapus.php?id=<?= $row['id_barang'] ?>"
+           class="btn btn-sm btn-danger"
+           onclick="return confirm('Yakin ingin menghapus barang ini?')">
+            Hapus
         </a>
     </td>
 </tr>

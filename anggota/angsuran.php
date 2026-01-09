@@ -67,7 +67,7 @@ $qAngsuran = mysqli_query($conn, "
     <li class="nav-item"><a class="nav-link" href="pinjaman.php"><i class="bi bi-file-text"></i> Pinjaman Saya</a></li>
     <li class="nav-item"><a class="nav-link" href="ajukan_pinjaman.php"><i class="bi bi-pencil-square"></i> Ajukan Pinjaman</a></li>
     <li class="nav-item"><a class="nav-link active" href="angsuran.php"><i class="bi bi-clock-history"></i> Riwayat Angsuran</a></li>
-    <li class="nav-item"><a class="nav-link active" href="transaksi_barang.php"><i class="bi bi-cart"></i> Transaksi Barang</a></li>
+    <li class="nav-item"><a class="nav-link" href="transaksi_barang.php"><i class="bi bi-cart"></i> Transaksi Barang</a></li>
     <hr>
     <li class="nav-item"><a class="nav-link text-danger" href="../auth/logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
   </ul>

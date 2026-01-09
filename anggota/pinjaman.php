@@ -95,7 +95,7 @@ $qPinjaman = mysqli_query($conn, "
         <i class="bi bi-clock-history"></i> Riwayat Angsuran
       </a>
     </li>
-    <li class="nav-item"><a class="nav-link active" href="transaksi_barang.php"><i class="bi bi-cart"></i> Transaksi Barang</a></li>
+    <li class="nav-item"><a class="nav-link" href="transaksi_barang.php"><i class="bi bi-cart"></i> Transaksi Barang</a></li>
     <hr>
     <li class="nav-item">
       <a class="nav-link text-danger" href="../auth/logout.php">

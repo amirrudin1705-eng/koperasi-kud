@@ -17,7 +17,7 @@ $pinjaman = mysqli_query($conn, "
     JOIN anggota ag ON p.id_anggota = ag.id_anggota
     JOIN users u ON ag.id_user = u.id_user
     LEFT JOIN angsuran a ON p.id_pengajuan = a.id_pengajuan
-    WHERE p.status = 'disetujui'
+    WHERE p.status = 'berjalan'
     GROUP BY p.id_pengajuan
     HAVING sisa > 0
 ");

@@ -2,7 +2,9 @@
 require '../auth/auth_staf.php';
 require '../config/database.php';
 
-/* DATA PENJUALAN */
+/* ===============================
+ * DATA PENJUALAN BARANG
+ * =============================== */
 $penjualan = mysqli_query($conn, "
     SELECT 
         t.id_transaksi,
@@ -19,7 +21,6 @@ $penjualan = mysqli_query($conn, "
     LEFT JOIN anggota a ON t.id_anggota = a.id_anggota
     LEFT JOIN users u ON a.id_user = u.id_user
     JOIN barang b ON t.id_barang = b.id_barang
-    WHERE t.jenis_transaksi = 'penjualan'
     ORDER BY t.tanggal_transaksi DESC
 ");
 
@@ -29,7 +30,7 @@ include 'layout/sidebar.php';
 
 <h4 class="fw-bold mb-1">Penjualan Barang</h4>
 <p class="text-muted mb-4">
-    Daftar transaksi penjualan barang koperasi (termasuk verifikasi)
+    Daftar transaksi penjualan barang koperasi (verifikasi oleh staf)
 </p>
 
 <?php if (isset($_GET['status']) && $_GET['status']=='success'): ?>
@@ -48,8 +49,9 @@ include 'layout/sidebar.php';
     <th>Barang</th>
     <th>Jumlah</th>
     <th>Total</th>
+    <th>Pembayaran</th>
     <th>Status</th>
-    <th>Aksi</th>
+    <th width="18%">Aksi</th>
 </tr>
 </thead>
 <tbody>
@@ -63,6 +65,22 @@ include 'layout/sidebar.php';
     <td><?= htmlspecialchars($row['nama_barang']); ?></td>
     <td><?= $row['jumlah'].' '.$row['satuan']; ?></td>
     <td>Rp <?= number_format($row['total'],0,',','.'); ?></td>
+
+    <!-- METODE PEMBAYARAN -->
+    <td>
+        <?php
+        if ($row['metode_pembayaran']=='cash')
+            echo '<span class="badge bg-primary">Cash</span>';
+        elseif ($row['metode_pembayaran']=='transfer')
+            echo '<span class="badge bg-info text-dark">Transfer</span>';
+        elseif ($row['metode_pembayaran']=='simpanan')
+            echo '<span class="badge bg-secondary">Potong Simpanan</span>';
+        else
+            echo '<span class="badge bg-dark">-</span>';
+        ?>
+    </td>
+
+    <!-- STATUS -->
     <td>
         <?php
         if ($row['status']=='menunggu')
@@ -73,6 +91,8 @@ include 'layout/sidebar.php';
             echo '<span class="badge bg-danger">Ditolak</span>';
         ?>
     </td>
+
+    <!-- AKSI -->
     <td>
         <?php if ($row['status']=='menunggu'): ?>
             <a href="penjualan_barang_verif.php?id=<?= $row['id_transaksi'] ?>&aksi=setujui"
@@ -92,7 +112,7 @@ include 'layout/sidebar.php';
 </tr>
 <?php endwhile; else: ?>
 <tr>
-    <td colspan="8" class="text-center text-muted">
+    <td colspan="9" class="text-center text-muted">
         Belum ada transaksi penjualan
     </td>
 </tr>

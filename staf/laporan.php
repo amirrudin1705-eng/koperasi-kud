@@ -8,8 +8,15 @@ include 'layout/sidebar.php';
 /* ===============================
  * FILTER TANGGAL (DEFAULT BULAN INI)
  * =============================== */
-$awal  = $_GET['awal']  ?? date('Y-m-01');
-$akhir = $_GET['akhir'] ?? date('Y-m-t');
+$awal  = $_GET['awal']  ?? '';
+$akhir = $_GET['akhir'] ?? '';
+
+$whereTanggal = '';
+
+if (!empty($awal) && !empty($akhir)) {
+    $whereTanggal = "WHERE tanggal BETWEEN '$awal' AND '$akhir'";
+}
+
 
 /* ===============================
  * TOTAL SIMPANAN (DANA MASUK)
@@ -17,7 +24,7 @@ $akhir = $_GET['akhir'] ?? date('Y-m-t');
 $simpanan = mysqli_fetch_assoc(mysqli_query($conn, "
     SELECT COALESCE(SUM(jumlah),0) AS total 
     FROM simpanan 
-    WHERE tanggal BETWEEN '$awal' AND '$akhir'
+    $whereTanggal
 "));
 
 /* ===============================
@@ -26,7 +33,7 @@ $simpanan = mysqli_fetch_assoc(mysqli_query($conn, "
 $angsuran = mysqli_fetch_assoc(mysqli_query($conn, "
     SELECT COALESCE(SUM(jumlah_bayar),0) AS total 
     FROM angsuran 
-    WHERE tanggal_bayar BETWEEN '$awal' AND '$akhir'
+    $whereTanggal
 "));
 
 /* ===============================
@@ -35,7 +42,7 @@ $angsuran = mysqli_fetch_assoc(mysqli_query($conn, "
 $penjualan = mysqli_fetch_assoc(mysqli_query($conn, "
     SELECT COALESCE(SUM(jumlah * harga),0) AS total 
     FROM transaksi_barang
-    WHERE tanggal_transaksi BETWEEN '$awal' AND '$akhir'
+    $whereTanggal
 "));
 
 /* ===============================
@@ -48,23 +55,30 @@ $totalDanaMasuk =
 ?>
 
 <h4 class="fw-bold mb-2">Laporan Keuangan</h4>
-<p class="text-muted mb-4">Periode <?= date('d M Y', strtotime($awal)) ?> s/d <?= date('d M Y', strtotime($akhir)) ?></p>
+
 
 <form method="get" class="row g-3 mb-4">
     <div class="col-md-4">
         <label>Tanggal Awal</label>
-        <input type="date" name="awal" value="<?= $awal ?>" class="form-control">
+        <input type="date" name="awal"
+               value="<?= htmlspecialchars($awal ?? '') ?>"
+               class="form-control">
     </div>
+
     <div class="col-md-4">
         <label>Tanggal Akhir</label>
-        <input type="date" name="akhir" value="<?= $akhir ?>" class="form-control">
+        <input type="date" name="akhir"
+               value="<?= htmlspecialchars($akhir ?? '') ?>"
+               class="form-control">
     </div>
+
     <div class="col-md-4 align-self-end">
         <button class="btn btn-primary w-100">
             <i class="bi bi-filter"></i> Tampilkan
         </button>
     </div>
 </form>
+
 
 <div class="row g-4 mb-4">
 

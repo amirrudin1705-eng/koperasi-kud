@@ -136,10 +136,20 @@ foreach ($cards as $c):
 <?php if ($detailSimpanan && mysqli_num_rows($detailSimpanan) > 0): ?>
 <?php $no=1; while($r=mysqli_fetch_assoc($detailSimpanan)): ?>
 <tr>
+<<<<<<< HEAD
     <td><?= $no++ ?></td>
     <td><?= date('d M Y', strtotime($r['tanggal'])) ?></td>
     <td><?= htmlspecialchars($r['nama_anggota']) ?></td>
     <td>Rp <?= number_format($r['jumlah'],0,',','.') ?></td>
+=======
+    <td><?= $no++; ?></td>
+    <td><?= htmlspecialchars($row['nama']); ?></td>
+    <td>Rp <?= number_format($row['total_tagihan'],0,',','.'); ?></td>
+    <td>Rp <?= number_format($row['total_bayar'],0,',','.'); ?></td>
+    <td class="text-danger fw-bold">
+        Rp <?= number_format($row['tunggakan'],0,',','.'); ?>
+    </td>
+>>>>>>> e67b832d1f9bd2ef40512f1aa1c2dd6dc22db51f
 </tr>
 <?php endwhile; else: ?>
 <tr>

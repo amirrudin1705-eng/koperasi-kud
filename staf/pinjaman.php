@@ -61,11 +61,16 @@ $query = mysqli_query($conn, "
     <?php elseif ($row['status'] == 'lunas'): ?>
         <span class="badge bg-primary">Lunas</span>
 
+<<<<<<< HEAD
     <?php elseif ($row['status'] == 'ditolak'): ?>
         <span class="badge bg-danger">Ditolak</span>
 
     <?php else: ?>
         <span class="badge bg-secondary">Tidak Diketahui</span>
+=======
+    <?php else: ?>
+        <span class="badge bg-danger">Ditolak</span>
+>>>>>>> e67b832d1f9bd2ef40512f1aa1c2dd6dc22db51f
     <?php endif; ?>
 </td>
 

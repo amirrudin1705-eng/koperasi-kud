@@ -8,6 +8,17 @@ if (!isset($_SESSION['login']) || $_SESSION['role'] !== 'admin') {
 
 require_once '../config/database.php';
 require_once 'helpers/laporan_data.php';
+
+/* ===============================
+ * LABEL PERIODE
+ * =============================== */
+$labelPeriode = 'Semua Periode';
+
+if (!empty($bulan) && !empty($tahun)) {
+    $labelPeriode = date('F Y', mktime(0,0,0,$bulan,1,$tahun));
+} elseif (!empty($tahun)) {
+    $labelPeriode = "Tahun $tahun";
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -27,7 +38,6 @@ body { font-family:'Poppins',sans-serif; background:#f5f6fa; }
 .sidebar a:hover, .sidebar a.active { background:#374151; color:#fff; }
 .content { margin-left:250px; padding:24px; }
 .card-stat { border:none; border-radius:12px; }
-.card-stat i { font-size:28px; }
 </style>
 </head>
 
@@ -52,16 +62,14 @@ body { font-family:'Poppins',sans-serif; background:#f5f6fa; }
 <!-- HEADER -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="fw-semibold mb-0">Laporan Koperasi</h4>
-    <span class="text-muted">
-        <?= date('F Y', mktime(0,0,0,$bulan ?: date('m'),1,$tahun)); ?>
-    </span>
+    <span class="text-muted"><?= $labelPeriode ?></span>
 </div>
 
 <!-- FILTER -->
 <form method="get" class="row g-2 mb-4">
     <div class="col-md-3">
         <select name="bulan" class="form-select">
-            <option value="">-- Bulan --</option>
+            <option value="">-- Semua Bulan --</option>
             <?php for($i=1;$i<=12;$i++): ?>
             <option value="<?= $i ?>" <?= ($bulan==$i?'selected':'') ?>>
                 <?= date('F', mktime(0,0,0,$i,1)) ?>
@@ -69,13 +77,18 @@ body { font-family:'Poppins',sans-serif; background:#f5f6fa; }
             <?php endfor; ?>
         </select>
     </div>
+
     <div class="col-md-3">
         <select name="tahun" class="form-select">
+            <option value="">-- Semua Tahun --</option>
             <?php for($y=date('Y');$y>=2022;$y--): ?>
-            <option value="<?= $y ?>" <?= ($tahun==$y?'selected':'') ?>><?= $y ?></option>
+            <option value="<?= $y ?>" <?= ($tahun==$y?'selected':'') ?>>
+                <?= $y ?>
+            </option>
             <?php endfor; ?>
         </select>
     </div>
+
     <div class="col-md-3">
         <button class="btn btn-primary">Filter</button>
         <a href="laporan.php" class="btn btn-secondary">Reset</a>
@@ -84,65 +97,140 @@ body { font-family:'Poppins',sans-serif; background:#f5f6fa; }
 
 <!-- STAT -->
 <div class="row g-4 mb-4">
+<?php
+$cards = [
+    ['Total Simpanan', $totalSimpanan, 'success'],
+    ['Angsuran Masuk', $totalAngsuranMasuk, 'info'],
+    ['Penjualan Barang', $totalPenjualanBarang, 'primary'],
+    ['Total Dana Masuk', $totalDanaMasuk, 'dark'],
+];
+foreach ($cards as $c):
+?>
     <div class="col-md-3">
         <div class="card card-stat p-3 shadow-sm">
-            <small>Total Simpanan</small>
-            <h4 class="fw-bold text-success">Rp <?= number_format($totalSimpanan,0,',','.') ?></h4>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card card-stat p-3 shadow-sm">
-            <small>Angsuran Masuk</small>
-            <h4 class="fw-bold text-info">Rp <?= number_format($totalAngsuranMasuk,0,',','.') ?></h4>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card card-stat p-3 shadow-sm">
-            <small>Penjualan Barang</small>
-            <h4 class="fw-bold text-primary">Rp <?= number_format($totalPenjualanBarang,0,',','.') ?></h4>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card card-stat p-3 shadow-sm">
-            <small>Total Dana Masuk</small>
-            <h4 class="fw-bold">
-                Rp <?= number_format(
-                    $totalSimpanan + $totalAngsuranMasuk + $totalPenjualanBarang,
-                    0,',','.'
-                ) ?>
+            <small><?= $c[0] ?></small>
+            <h4 class="fw-bold text-<?= $c[2] ?>">
+                Rp <?= number_format($c[1],0,',','.') ?>
             </h4>
         </div>
     </div>
+<?php endforeach; ?>
 </div>
 
-<!-- TUNGGAKAN -->
+<!-- DETAIL SIMPANAN -->
 <div class="card shadow-sm mb-4">
 <div class="card-body">
-<h6 class="fw-semibold mb-3">Tunggakan Per Anggota</h6>
-<table class="table table-bordered">
+<h6 class="fw-semibold mb-3">Detail Simpanan Anggota</h6>
+
+<div class="table-responsive">
+<table class="table table-bordered align-middle">
 <thead class="table-light">
 <tr>
-    <th>No</th><th>Nama</th><th>Pinjaman</th><th>Dibayar</th><th>Tunggakan</th>
+    <th>No</th>
+    <th>Tanggal</th>
+    <th>Anggota</th>
+    <th>Jumlah</th>
 </tr>
 </thead>
 <tbody>
-<?php if (!empty($dataTunggakan)): ?>
-<?php $no=1; foreach($dataTunggakan as $r): ?>
+<?php if ($detailSimpanan && mysqli_num_rows($detailSimpanan) > 0): ?>
+<?php $no=1; while($r=mysqli_fetch_assoc($detailSimpanan)): ?>
 <tr>
     <td><?= $no++ ?></td>
-    <td><?= $r['nama_anggota'] ?></td>
-    <td>Rp <?= number_format($r['jumlah_pinjaman'],0,',','.') ?></td>
-    <td>Rp <?= number_format($r['total_bayar'],0,',','.') ?></td>
-    <td class="fw-bold text-danger">Rp <?= number_format($r['tunggakan'],0,',','.') ?></td>
+    <td><?= date('d M Y', strtotime($r['tanggal'])) ?></td>
+    <td><?= htmlspecialchars($r['nama_anggota']) ?></td>
+    <td>Rp <?= number_format($r['jumlah'],0,',','.') ?></td>
 </tr>
-<?php endforeach; else: ?>
-<tr><td colspan="5" class="text-center text-muted">Tidak ada data</td></tr>
+<?php endwhile; else: ?>
+<tr>
+    <td colspan="4" class="text-center text-muted">Tidak ada data simpanan</td>
+</tr>
 <?php endif; ?>
 </tbody>
 </table>
+</div>
+</div>
+</div>
+
+<!-- DETAIL ANGSURAN -->
+<div class="card shadow-sm mb-4">
+<div class="card-body">
+<h6 class="fw-semibold mb-3">Detail Angsuran Pinjaman</h6>
+
+<div class="table-responsive">
+<table class="table table-bordered align-middle">
+<thead class="table-light">
+<tr>
+    <th>No</th>
+    <th>Tanggal</th>
+    <th>Anggota</th>
+    <th>Jumlah Bayar</th>
+</tr>
+</thead>
+<tbody>
+<?php if ($detailAngsuran && mysqli_num_rows($detailAngsuran) > 0): ?>
+<?php $no=1; while($r=mysqli_fetch_assoc($detailAngsuran)): ?>
+<tr>
+    <td><?= $no++ ?></td>
+    <td><?= date('d M Y', strtotime($r['tanggal_bayar'])) ?></td>
+    <td><?= htmlspecialchars($r['nama_anggota']) ?></td>
+    <td>Rp <?= number_format($r['jumlah_bayar'],0,',','.') ?></td>
+</tr>
+<?php endwhile; else: ?>
+<tr>
+    <td colspan="4" class="text-center text-muted">Tidak ada data angsuran</td>
+</tr>
+<?php endif; ?>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+<!-- DETAIL PENJUALAN -->
+<div class="card shadow-sm">
+<div class="card-body">
+<h6 class="fw-semibold mb-3">Detail Transaksi Penjualan Barang</h6>
+
+<div class="table-responsive">
+<table class="table table-bordered align-middle">
+<thead class="table-light">
+<tr>
+    <th>No</th>
+    <th>Tanggal</th>
+    <th>Anggota</th>
+    <th>Barang</th>
+    <th>Jumlah</th>
+    <th>Total</th>
+    <th>Pembayaran</th>
+    <th>Status</th>
+</tr>
+</thead>
+<tbody>
+<?php if ($detailPenjualan && mysqli_num_rows($detailPenjualan) > 0): ?>
+<?php $no=1; while($r=mysqli_fetch_assoc($detailPenjualan)): ?>
+<tr>
+    <td><?= $no++ ?></td>
+    <td><?= date('d M Y', strtotime($r['tanggal_transaksi'])) ?></td>
+    <td><?= htmlspecialchars($r['nama_anggota'] ?? 'Umum') ?></td>
+    <td><?= htmlspecialchars($r['nama_barang']) ?></td>
+    <td><?= $r['jumlah'].' '.$r['satuan'] ?></td>
+    <td>Rp <?= number_format($r['total'],0,',','.') ?></td>
+    <td><?= ucfirst($r['metode_pembayaran']) ?></td>
+    <td><?= ucfirst($r['status']) ?></td>
+</tr>
+<?php endwhile; else: ?>
+<tr>
+    <td colspan="8" class="text-center text-muted">Tidak ada transaksi</td>
+</tr>
+<?php endif; ?>
+</tbody>
+</table>
+</div>
+
 <a href="laporan_print.php?bulan=<?= $bulan ?>&tahun=<?= $tahun ?>"
    target="_blank"
-   class="btn btn-outline-primary mb-4">
+   class="btn btn-outline-primary">
    <i class="bi bi-printer"></i> Cetak Laporan
 </a>
 

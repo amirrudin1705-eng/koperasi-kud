@@ -15,6 +15,7 @@ $tahun = $_GET['tahun'] ?? '';
 $qSimpanan = "
     SELECT COALESCE(SUM(jumlah),0) AS total
     FROM simpanan
+<<<<<<< HEAD
     WHERE 1=1
 ";
 if ($tahun !== '') {

@@ -11,12 +11,12 @@ $dataPinjaman = [];
 
 /* ===============================
    TOTAL PINJAMAN AKTIF
-   (STATUS DISETUJUI)
+   (STATUS BERJALAN)
 ================================ */
 $qTotal = mysqli_query($conn, "
     SELECT COALESCE(SUM(jumlah_pinjaman), 0) AS total
     FROM pengajuan_pinjaman
-    WHERE status = 'disetujui'
+    WHERE status = 'berjalan'
 ");
 
 if ($qTotal) {
@@ -25,7 +25,7 @@ if ($qTotal) {
 }
 
 /* ===============================
-   DATA PINJAMAN (DISSETUJUI)
+   DATA PINJAMAN (STATUS BERJALAN)
 ================================ */
 $qData = mysqli_query($conn, "
     SELECT
@@ -39,7 +39,7 @@ $qData = mysqli_query($conn, "
     FROM pengajuan_pinjaman p
     JOIN anggota a ON p.id_anggota = a.id_anggota
     JOIN users u ON a.id_user = u.id_user
-    WHERE p.status = 'disetujui'
+    WHERE p.status = 'berjalan'
     ORDER BY p.tanggal_pengajuan DESC
 ");
 
